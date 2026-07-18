@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIMs Transport — AI-Managed Email Security</title>
+<style>
+  :root{
+    --bg:#0a0b0f; --bg2:#0d0e13; --card:#14161e; --card2:#181a23; --inset:#0b0c11;
+    --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.12);
+    --ink:#f5f6f8; --ink2:#a3a8b6; --muted:#686d7c;
+    --mint:#2dd4a7; --amber:#f0b429; --coral:#ef5b4c; --blue:#4b8bf5;
+    --good:#2dd4a7; --warn:#f0b429; --crit:#ef5b4c;
+    --s1:#4b8bf5; --s2:#2dd4a7; --s3:#e07aa8; --s4:#e0a53a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+    radial-gradient(1200px 500px at 80% -100px,rgba(45,212,167,.06),transparent 60%),
+    radial-gradient(1000px 500px at 0% -50px,rgba(239,91,76,.05),transparent 55%),
+    var(--bg);
+    color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.45;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 22px 46px}
+  /* top nav */
+  .topnav{max-width:1240px;margin:0 auto;padding:20px 22px;display:flex;align-items:center;gap:18px}
+  .logo{display:flex;align-items:center;gap:11px}
+  .logo .mk{display:grid;grid-template-columns:1fr 1fr;gap:3px;width:26px;height:26px}
+  .logo .mk i{display:block;width:100%;height:100%;border-radius:3px;background:#2a2d38}
+  .logo .mk i:nth-child(1){background:#e6e8ee} .logo .mk i:nth-child(4){background:var(--coral)}
+  .logo b{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:22px;font-weight:600;letter-spacing:.3px}
+  .pillnav{margin:0 auto;display:flex;gap:2px;background:rgba(255,255,255,.05);border:1px solid var(--border);
+    padding:5px;border-radius:40px;backdrop-filter:blur(6px)}
+  .pillnav a{padding:8px 18px;border-radius:30px;color:var(--ink2);text-decoration:none;font-size:13.5px;font-weight:600}
+  .pillnav a.on{background:rgba(255,255,255,.10);color:#fff}
+  .connpill{display:inline-flex;align-items:center;gap:8px;background:rgba(45,212,167,.10);border:1px solid rgba(45,212,167,.30);
+    color:var(--mint);padding:8px 14px;border-radius:30px;font-size:12.5px;font-weight:600}
+  .connpill .dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 3px rgba(45,212,167,.18)}
+  /* hero title */
+  .hero{padding:14px 2px 4px}
+  .hero h1{margin:0;font-size:30px;line-height:1.15;font-weight:700;letter-spacing:-.4px}
+  .hero h1 em{font-family:Georgia,serif;font-style:italic;font-weight:600;color:var(--mint)}
+  .hero p{margin:8px 0 0;color:var(--ink2);font-size:14.5px;max-width:720px}
+  .hero .meta{margin-top:10px;color:var(--muted);font-size:12.5px}
+  .hero .meta b{color:var(--ink)}
+  .sec-label{font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin:26px 2px 12px}
+  /* integrations */
+  .integrations{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .conn{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:16px;
+    padding:16px 18px;display:flex;gap:13px;position:relative;overflow:hidden}
+  .conn::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--mint);opacity:.9}
+  .conn .ico{flex:none;margin-top:1px;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.05);
+    border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+  .conn .name{font-weight:700;font-size:14.5px}
+  .conn .desc{color:var(--ink2);font-size:12.5px;margin:3px 0 9px}
+  .conn .status{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--mint)}
+  .conn .status .d{width:7px;height:7px;border-radius:50%;background:var(--mint)}
+  .conn .sync{color:var(--muted);font-size:11px;margin-top:6px}
+  /* flow */
+  .flow{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:15px 16px;margin-top:14px;
+    display:flex;align-items:center;gap:11px;flex-wrap:wrap;justify-content:center;font-size:12.5px;font-weight:600}
+  .flow .node{padding:9px 14px;border-radius:10px;border:1px solid var(--border2);color:var(--ink)}
+  .flow .ms{background:rgba(75,139,245,.12);border-color:rgba(75,139,245,.35);color:#a9c7fb}
+  .flow .api{background:rgba(255,255,255,.05)}
+  .flow .ag{background:rgba(45,212,167,.12);border-color:rgba(45,212,167,.35);color:#8ff0d3}
+  .flow .db{background:rgba(240,180,41,.12);border-color:rgba(240,180,41,.32);color:#f4d488}
+  .flow .arrow{color:var(--muted);font-weight:700}
+  /* kpi */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:16px;padding:18px 20px}
+  .kpi .lab{font-size:12px;color:var(--ink2);font-weight:600}
+  .kpi .val{font-size:40px;font-weight:800;letter-spacing:-1px;margin-top:8px;line-height:1}
+  .kpi .sub{font-size:11.5px;color:var(--muted);margin-top:8px}
+  .kpi .sub b{color:var(--mint);font-weight:700}
+  .kpi .sub b.bad{color:var(--coral)}
+  /* grid */
+  .grid{display:grid;grid-template-columns:1.12fr .88fr;gap:16px;margin-top:16px}
+  .col{display:flex;flex-direction:column;gap:16px}
+  .card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:16px;padding:18px 20px}
+  .card h3{margin:0 0 2px;font-size:14.5px;font-weight:700}
+  .card .cs{font-size:11.5px;color:var(--muted);margin-bottom:14px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  svg{display:block;overflow:visible}
+  .axis{fill:var(--muted);font-size:10px}
+  rect.bar{transition:opacity .15s} rect.bar:hover{opacity:.8;cursor:pointer}
+  .legend{display:flex;flex-wrap:wrap;gap:9px 16px;margin-top:12px;font-size:12px;color:var(--ink2)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+  /* tags */
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 14px}
+  .tags span{font-size:11px;color:var(--ink2);background:rgba(255,255,255,.05);border:1px solid var(--border);
+    padding:4px 10px;border-radius:20px}
+  /* terminal */
+  .term{background:var(--inset);border:1px solid var(--border);border-radius:12px;padding:13px 15px;
+    font-family:ui-monospace,"SF Mono","Cascadia Code",Consolas,monospace;font-size:12px;line-height:1.85}
+  .term .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .term .ts{color:var(--muted)} .term .ok{color:var(--mint)} .term .bad{color:var(--coral)} .term .w{color:var(--amber)}
+  .term .tx{color:var(--ink2)}
+  /* feed */
+  .feed{list-style:none;margin:0;padding:0}
+  .feed li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+  .feed li:last-child{border-bottom:0}
+  .feed .fi{flex:none;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)}
+  .fi.sim{background:rgba(75,139,245,.14);color:#7fb0fb} .fi.train{background:rgba(224,122,168,.14);color:#eaa0c4}
+  .fi.rf{background:rgba(45,212,167,.14);color:var(--mint)}
+  .feed .ft{font-size:13px;font-weight:600}
+  .feed .fd{font-size:11.5px;color:var(--ink2)}
+  .feed .fm{font-size:11px;color:var(--muted);white-space:nowrap;margin-left:auto}
+  .tagr{margin-left:8px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(240,180,41,.14);color:var(--amber);vertical-align:middle}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;padding:7px 8px;border-bottom:1px solid var(--border)}
+  td{padding:10px 8px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;color:var(--ink)}
+  tr:last-child td{border-bottom:0}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .b-crit{background:rgba(239,91,76,.15);color:#f4897d} .b-warn{background:rgba(240,180,41,.15);color:#f3ca6b}
+  .b-ok{background:rgba(45,212,167,.15);color:#6fe3c1}
+  .gauge-wrap{display:flex;align-items:center;gap:20px}
+  .gauge-txt .big{font-size:34px;font-weight:800;color:var(--mint)}
+  .gauge-txt .lb{font-size:12px;color:var(--ink2);margin-top:2px}
+  .foot{margin-top:24px;color:var(--muted);font-size:11.5px;text-align:center}
+  @media(max-width:920px){.grid{grid-template-columns:1fr}.integrations{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.row2{grid-template-columns:1fr}.pillnav{display:none}}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="logo"><div class="mk"><i></i><i></i><i></i><i></i></div><b>RIMs&nbsp;Transport</b></div>
+  <div class="pillnav">
+    <a class="on" href="#">Overview</a><a href="#">Security</a><a href="#">Awareness</a><a href="#">Incidents</a>
+  </div>
+  <div class="connpill"><span class="dot"></span>All systems connected</div>
+</nav>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Email security, <em>watched by agents.</em></h1>
+    <p>Microsoft Defender for Office 365 Plan 2 blocks the threats; two AI agents monitor them and keep your people trained — all in one view.</p>
+    <div class="meta">Tenant: <b>[Customer Name]</b> · 50 seats · last refresh <span id="clock"></span></div>
+  </div>
+
+  <div class="sec-label">Microsoft 365 integration</div>
+  <div class="integrations">
+    <div class="conn">
+      <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path fill="#4b8bf5" d="M12 2 3 5v6c0 5 3.8 9.3 9 11 5.2-1.7 9-6 9-11V5z"/><path fill="#0a0b0f" d="m10.6 14.3-2.3-2.3 1.1-1.1 1.2 1.2 3.9-3.9 1.1 1.1z"/></svg></div>
+      <div><div class="name">Defender for Office 365</div><div class="desc">Plan 2 — blocks malware, phishing &amp; BEC; ZAP + Threat Explorer feed the agents.</div><div class="status"><span class="d"></span>Connected · Graph Security API</div><div class="sync">Last sync 40s ago</div></div>
+    </div>
+    <div class="conn">
+      <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="#4b8bf5"/><path fill="#0a0b0f" d="M3.4 6.2 12 12l8.6-5.8V7.9L12 13.6 3.4 7.9z"/></svg></div>
+      <div><div class="name">Exchange Online</div><div class="desc">Mail flow &amp; mailbox signals — quarantine actions and message tracing.</div><div class="status"><span class="d"></span>Connected · Graph Mail API</div><div class="sync">Last sync 1m ago</div></div>
+    </div>
+    <div class="conn">
+      <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="#2dd4a7" d="M12 2 4 6v5.5C4 17 7.4 20.7 12 22c4.6-1.3 8-5 8-10.5V6z"/><circle cx="12" cy="10" r="2.4" fill="#0a0b0f"/><path fill="#0a0b0f" d="M7.7 16.6c.5-2 2.1-3 4.3-3s3.8 1 4.3 3A6.8 6.8 0 0 1 12 18.6a6.8 6.8 0 0 1-4.3-2z"/></svg></div>
+      <div><div class="name">Microsoft Entra ID</div><div class="desc">Identity, sign-in risk &amp; Attack Simulation Training — the awareness agent's engine.</div><div class="status"><span class="d"></span>Connected · Graph Identity API</div><div class="sync">Last sync 2m ago</div></div>
+    </div>
+  </div>
+
+  <div class="flow">
+    <span class="node ms">Microsoft 365 · Defender P2 · Exchange · Entra ID</span>
+    <span class="arrow">→</span><span class="node api">Secure Graph API</span>
+    <span class="arrow">→</span><span class="node ag">Monitoring + Awareness agents</span>
+    <span class="arrow">→</span><span class="node db">This dashboard</span>
+  </div>
+
+  <div class="sec-label">Results — last 30 days</div>
+  <div class="kpis">
+    <div class="kpi"><div class="lab">Malicious emails blocked</div><div class="val">1,284</div><div class="sub">Defender P2 + ZAP</div></div>
+    <div class="kpi"><div class="lab">Phishing click-rate</div><div class="val">4%</div><div class="sub"><b>▼ 23 pts</b> since onboarding</div></div>
+    <div class="kpi"><div class="lab">Users trained</div><div class="val">92%</div><div class="sub"><b>46 / 50</b> users current</div></div>
+    <div class="kpi"><div class="lab">Open incidents</div><div class="val">2</div><div class="sub"><b class="bad">1 serious</b> · 1 low</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="col">
+      <div class="card">
+        <h3>Emails blocked</h3><div class="cs">Threats stopped per day · last 14 days · Defender P2</div>
+        <svg id="blocked" width="100%" height="200" viewBox="0 0 640 200"></svg>
+      </div>
+      <div class="row2">
+        <div class="card">
+          <h3>Threat mix</h3><div class="cs">What was blocked, by type</div>
+          <svg id="donut" width="100%" height="170" viewBox="0 0 200 170"></svg>
+          <div class="legend" id="donutLegend"></div>
+        </div>
+        <div class="card">
+          <h3>Phishing click-rate</h3><div class="cs">Simulation results · monthly</div>
+          <svg id="trend" width="100%" height="190" viewBox="0 0 300 190"></svg>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Training completion by department</h3><div class="cs">Awareness agent · % of staff current on assigned modules</div>
+        <svg id="dept" width="100%" height="180" viewBox="0 0 640 180"></svg>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <h3>Organisation risk score</h3><div class="cs">Composite of exposure, click-rate &amp; training</div>
+        <div class="gauge-wrap">
+          <svg id="gauge" width="150" height="90" viewBox="0 0 150 90"></svg>
+          <div class="gauge-txt"><div class="big">22 <span style="font-size:15px;color:var(--muted)">/100</span></div><div class="lb"><b style="color:var(--mint)">Low risk</b> · down from 61 at onboarding</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Monitoring agent</h3><div class="cs">Watching Defender 24/7 · auto-contains within guardrails</div>
+        <div class="tags"><span>mail-flow sweep</span><span>ZAP purge</span><span>BEC heuristics</span><span>impossible-travel</span></div>
+        <div class="term">
+          <div class="ln"><span class="ts">09:14:02</span> <span class="tx">sweep start — scanning inbound mail flow</span></div>
+          <div class="ln"><span class="ts">09:14:08</span> <span class="tx">1,284 inspected ·</span> <span class="bad">6 blocked (phishing)</span></div>
+          <div class="ln"><span class="ts">09:15:20</span> <span class="bad">ZAP purge</span> <span class="tx">— 34-message campaign removed</span></div>
+          <div class="ln"><span class="ts">09:16:03</span> <span class="w">BEC heuristic tripped</span> <span class="tx">→ escalated to RIMs</span></div>
+          <div class="ln"><span class="ts">09:16:44</span> <span class="tx">risky sign-in blocked · account reset</span></div>
+          <div class="ln"><span class="ts">09:17:41</span> <span class="ok">no further anomalies this sweep</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Awareness agent</h3><div class="cs">Simulations &amp; training, tailored per user</div>
+        <ul class="feed">
+          <li><div class="fi sim"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/></svg></div><div><div class="ft">Sent phishing simulation</div><div class="fd">"Payroll update" · 48 users · role-matched</div></div><div class="fm">Mon</div></li>
+          <li><div class="fi train"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 8.5l10 4.5 10-4.5z"/><path d="M6 10.5V15c0 1.4 2.7 2.8 6 2.8s6-1.4 6-2.8v-4.5"/></svg></div><div><div class="ft">Assigned micro-training</div><div class="fd">3 users who clicked · 4-min "spot the spoof"</div></div><div class="fm">Mon</div></li>
+          <li><div class="fi rf"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16"/><path d="M4 20v-4h4"/></svg></div><div><div class="ft">Nudged 5 overdue users</div><div class="fd">Reminder to complete Q3 awareness module</div></div><div class="fm">Sun</div></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Open incidents</h3>
+        <table>
+          <thead><tr><th>Incident</th><th>Type</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>CEO impersonation → Finance</td><td>BEC</td><td><span class="badge b-warn">Serious</span></td></tr>
+            <tr><td>Repeat clicker — 1 user</td><td>Awareness</td><td><span class="badge b-ok">Low</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">Illustrative demonstration data · RIMs Transport · adapting-services.ca — sample values for a 50-seat tenant.</div>
+</div>
+
+<script>
+const S={s1:'#4b8bf5',s2:'#2dd4a7',s3:'#e07aa8',s4:'#e0a53a',ink2:'#a3a8b6',muted:'#686d7c',
+  grid:'rgba(255,255,255,.08)',good:'#2dd4a7',warn:'#f0b429',crit:'#ef5b4c',mint:'#2dd4a7'};
+const NS='http://www.w3.org/2000/svg';
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});}
+tick();setInterval(tick,30000);
+
+// blocked bars
+(function(){
+  const svg=document.getElementById('blocked');
+  const data=[52,61,44,78,90,66,71,58,84,120,73,69,95,88];
+  const W=640,H=200,pl=30,pr=10,pt=14,pb=24,cw=W-pl-pr,ch=H-pt-pb,max=130,gap=8,bw=(cw/data.length)-gap;
+  [0,65,130].forEach(v=>{const y=pt+ch-(v/max)*ch;
+    svg.appendChild(el('line',{x1:pl,y1:y,x2:W-pr,y2:y,stroke:S.grid,'stroke-width':1}));
+    const t=el('text',{x:pl-6,y:y+3,'text-anchor':'end',class:'axis'});t.textContent=v;svg.appendChild(t);});
+  const grad=el('linearGradient',{id:'bg1',x1:0,y1:0,x2:0,y2:1});
+  grad.appendChild(el('stop',{offset:0,'stop-color':S.mint,'stop-opacity':1}));
+  grad.appendChild(el('stop',{offset:1,'stop-color':S.mint,'stop-opacity':.45}));svg.appendChild(grad);
+  data.forEach((v,i)=>{const x=pl+i*(bw+gap)+gap/2,bh=(v/max)*ch,y=pt+ch-bh;
+    const r=el('rect',{x:x,y:y,width:bw,height:bh,rx:4,fill:'url(#bg1)',class:'bar'});
+    const tt=el('title');tt.textContent='Day '+(i+1)+': '+v+' blocked';r.appendChild(tt);svg.appendChild(r);});
+  ['D-13','D-9','D-5','D-1'].forEach((l,i)=>{const idx=[0,4,8,13][i];const x=pl+idx*(bw+gap)+gap/2+bw/2;
+    const t=el('text',{x:x,y:H-8,'text-anchor':'middle',class:'axis'});t.textContent=l;svg.appendChild(t);});
+})();
+
+// donut
+(function(){
+  const svg=document.getElementById('donut');
+  const data=[['Phishing',46,S.s1],['Malware',22,S.s2],['BEC / impersonation',18,S.s4],['Spam / graymail',14,S.s3]];
+  const cx=95,cy=85,r=60,rin=37;let ang=-Math.PI/2;
+  data.forEach(d=>{const a2=ang+(d[1]/100)*2*Math.PI;
+    const x1=cx+r*Math.cos(ang),y1=cy+r*Math.sin(ang),x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    const xi1=cx+rin*Math.cos(a2),yi1=cy+rin*Math.sin(a2),xi2=cx+rin*Math.cos(ang),yi2=cy+rin*Math.sin(ang);
+    const lg=(d[1]/100)>0.5?1:0;
+    const p=el('path',{d:`M${x1} ${y1} A${r} ${r} 0 ${lg} 1 ${x2} ${y2} L${xi1} ${yi1} A${rin} ${rin} 0 ${lg} 0 ${xi2} ${yi2} Z`,fill:d[2],stroke:'#14161e','stroke-width':2.5});
+    const tt=el('title');tt.textContent=d[0]+': '+d[1]+'%';p.appendChild(tt);svg.appendChild(p);ang=a2;});
+  const t1=el('text',{x:cx,y:cy-2,'text-anchor':'middle','font-size':22,'font-weight':800,fill:'#f5f6f8'});t1.textContent='1,284';
+  const t2=el('text',{x:cx,y:cy+14,'text-anchor':'middle','font-size':10,fill:S.muted});t2.textContent='blocked';
+  svg.appendChild(t1);svg.appendChild(t2);
+  const leg=document.getElementById('donutLegend');
+  data.forEach(d=>{const s=document.createElement('span');s.innerHTML='<i class="sw" style="background:'+d[2]+'"></i>'+d[0]+' '+d[1]+'%';leg.appendChild(s);});
+})();
+
+// trend line + area
+(function(){
+  const svg=document.getElementById('trend');
+  const data=[['Feb',27],['Mar',21],['Apr',16],['May',11],['Jun',7],['Jul',4]];
+  const W=300,H=190,pl=28,pr=14,pt=14,pb=26,cw=W-pl-pr,ch=H-pt-pb,max=30;
+  [0,10,20,30].forEach(v=>{const y=pt+ch-(v/max)*ch;
+    svg.appendChild(el('line',{x1:pl,y1:y,x2:W-pr,y2:y,stroke:S.grid,'stroke-width':1}));
+    const t=el('text',{x:pl-6,y:y+3,'text-anchor':'end',class:'axis'});t.textContent=v+'%';svg.appendChild(t);});
+  const pts=data.map((d,i)=>[pl+(i/(data.length-1))*cw, pt+ch-(d[1]/max)*ch]);
+  const g=el('linearGradient',{id:'tg',x1:0,y1:0,x2:0,y2:1});
+  g.appendChild(el('stop',{offset:0,'stop-color':S.mint,'stop-opacity':.28}));
+  g.appendChild(el('stop',{offset:1,'stop-color':S.mint,'stop-opacity':0}));svg.appendChild(g);
+  const area='M'+pts.map(p=>p[0]+' '+p[1]).join(' L')+` L${pts[pts.length-1][0]} ${pt+ch} L${pts[0][0]} ${pt+ch} Z`;
+  svg.appendChild(el('path',{d:area,fill:'url(#tg)'}));
+  svg.appendChild(el('path',{d:'M'+pts.map(p=>p[0]+' '+p[1]).join(' L'),fill:'none',stroke:S.mint,'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'}));
+  pts.forEach((p,i)=>{const c=el('circle',{cx:p[0],cy:p[1],r:4,fill:'#14161e',stroke:S.mint,'stroke-width':2.5});
+    const tt=el('title');tt.textContent=data[i][0]+': '+data[i][1]+'%';c.appendChild(tt);svg.appendChild(c);
+    const t=el('text',{x:p[0],y:H-9,'text-anchor':'middle',class:'axis'});t.textContent=data[i][0];svg.appendChild(t);});
+  const last=pts[pts.length-1];const lab=el('text',{x:last[0],y:last[1]-10,'text-anchor':'end','font-size':11,'font-weight':700,fill:S.mint});lab.textContent='4%';svg.appendChild(lab);
+})();
+
+// dept bars
+(function(){
+  const svg=document.getElementById('dept');
+  const data=[['Executive',100],['Finance',96],['Operations',92],['Sales',88],['Support',84]];
+  const W=640,H=180,pl=94,pr=46,pt=6,pb=6,cw=W-pl-pr,rowh=(H-pt-pb)/data.length,bh=18;
+  data.forEach((d,i)=>{const y=pt+i*rowh+(rowh-bh)/2;
+    const t=el('text',{x:pl-10,y:y+bh/2+4,'text-anchor':'end','font-size':12,fill:S.ink2,'font-weight':600});t.textContent=d[0];svg.appendChild(t);
+    svg.appendChild(el('rect',{x:pl,y:y,width:cw,height:bh,rx:5,fill:'rgba(255,255,255,.05)'}));
+    const w=(d[1]/100)*cw;const col=d[1]>=90?S.mint:(d[1]>=80?S.s1:S.warn);
+    const r=el('rect',{x:pl,y:y,width:w,height:bh,rx:5,fill:col});
+    const tt=el('title');tt.textContent=d[0]+': '+d[1]+'% current';r.appendChild(tt);svg.appendChild(r);
+    const v=el('text',{x:pl+cw+8,y:y+bh/2+4,'font-size':12,'font-weight':700,fill:'#f5f6f8'});v.textContent=d[1]+'%';svg.appendChild(v);});
+})();
+
+// gauge
+(function(){
+  const svg=document.getElementById('gauge');
+  const cx=75,cy=80,r=58,val=22;
+  function arc(a1,a2,col,w){const x1=cx+r*Math.cos(Math.PI-a1*Math.PI),y1=cy-r*Math.sin(Math.PI-a1*Math.PI);
+    const x2=cx+r*Math.cos(Math.PI-a2*Math.PI),y2=cy-r*Math.sin(Math.PI-a2*Math.PI);
+    svg.appendChild(el('path',{d:`M${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}`,fill:'none',stroke:col,'stroke-width':w,'stroke-linecap':'round'}));}
+  arc(0,1,'rgba(255,255,255,.07)',12);
+  arc(0,0.33,S.good,12);arc(0.34,0.66,S.warn,12);arc(0.67,1,S.crit,12);
+  const a=val/100,nx=cx+(r-2)*Math.cos(Math.PI-a*Math.PI),ny=cy-(r-2)*Math.sin(Math.PI-a*Math.PI);
+  svg.appendChild(el('line',{x1:cx,y1:cy,x2:nx,y2:ny,stroke:'#f5f6f8','stroke-width':3,'stroke-linecap':'round'}));
+  svg.appendChild(el('circle',{cx:cx,cy:cy,r:5,fill:'#f5f6f8'}));
+})();
+</script>
+</body>
+</html>
