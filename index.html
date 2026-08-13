@@ -90,6 +90,16 @@
   .term{background:var(--inset);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:12px;line-height:1.85;max-height:260px;overflow:auto}
   .term .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .term .ts{color:var(--muted)} .term .ok{color:var(--mint)} .term .bad{color:var(--coral)} .term .w{color:var(--amber)} .term .tx{color:var(--ink2)}
+  .reclist{list-style:none;margin:0;padding:0}
+  .recitem{display:flex;gap:12px;padding:12px 2px;border-bottom:1px solid var(--border)}
+  .recitem:last-child{border-bottom:0}
+  .recdot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:5px}
+  .recbody{flex:1;min-width:0}
+  .rectitle{font-size:13.5px;font-weight:700}
+  .recpri{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-left:8px}
+  .recwhy{font-size:12px;color:var(--ink2);margin-top:2px}
+  .recact{font-size:12px;color:var(--ink2);margin-top:4px}
+  .recact b{color:var(--mint)}
   .feed{list-style:none;margin:0;padding:0}
   .feed li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
   .feed li:last-child{border-bottom:0}
@@ -174,6 +184,9 @@
       <div class="kpi" data-go="awareness"><span class="go">→</span><div class="lab">Users trained</div><div class="val" data-count="92" data-suffix="%">0%</div><div class="sub"><b>46 / 50</b> users current</div></div>
       <div class="kpi" data-go="incidents"><span class="go">→</span><div class="lab">Open incidents</div><div class="val" id="kpiInc" data-count="2">0</div><div class="sub" id="kpiIncSub"><b class="bad">1 serious</b> · 1 low</div></div>
     </div>
+
+    <div class="sec-label">Agent recommendations <span class="sp"></span><span style="font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);font-size:11px">prioritised · refreshed each sync</span></div>
+    <div class="card"><ul class="reclist" id="recs"></ul></div>
 
     <div class="grid">
       <div class="col">
@@ -483,6 +496,31 @@ updateIncKpi();
 
 /* ---------- LIVE DATA: pull from the serverless agent, fall back to demo ---------- */
 const sevMap={high:{sev:'Serious',cls:'b-crit'},medium:{sev:'Elevated',cls:'b-warn'},low:{sev:'Low',cls:'b-ok'},informational:{sev:'Low',cls:'b-ok'}};
+// client-side recommendation fallback (mirrors the agent backend) so recs show even offline
+const DEMO_ALERTS=[
+  {title:'Phishing campaign impersonating BMO removed after delivery (ZAP)',category:'Phishing',severity:'high'},
+  {title:'Malware attachment detonated by Safe Attachments',category:'Malware',severity:'medium'},
+  {title:'Impossible-travel sign-in blocked',category:'Identity',severity:'medium'}
+];
+function buildRecsClient(alerts,incidents){
+  const blob=(alerts||[]).map(a=>((a.title||'')+' '+(a.category||'')).toLowerCase()).join(' | ');
+  const ib=(incidents||[]).map(i=>((i.name||'')+' '+(i.type||'')).toLowerCase()).join(' | ');
+  const r=[],rank={high:0,medium:1,low:2};
+  if(/(bmo|bank of montreal|rbc|scotiabank|cibc|\btd\b|impersonat|phish)/.test(blob))r.push({priority:'high',title:'Block the phishing sender domain and warn staff',why:'Bank-brand / impersonation phishing in recent alerts — the BMO-wave pattern.',action:'Add the sending domain + link host to the Tenant Allow/Block List, then send the staff heads-up email.'});
+  if(/(bec|impersonation|ceo|invoice|payment|wire)/.test(ib))r.push({priority:'high',title:'Verify the BEC attempt caused no payment change',why:'A business-email-compromise incident is open.',action:'Confirm with Finance no bank details or payments changed; keep the sender quarantined.'});
+  if(/(malware|attachment|virus)/.test(blob))r.push({priority:'medium',title:'Confirm the malicious attachment was contained',why:'A malware / attachment detection fired.',action:'Check Safe Attachments quarantined it and search for other recipients.'});
+  if(/(sign-in|impossible travel|identity|token|risky)/.test(blob))r.push({priority:'medium',title:'Review the flagged sign-in',why:'A risky / impossible-travel sign-in was detected.',action:'Confirm the account was reset and enforce MFA re-registration.'});
+  if(/(click|awareness|repeat)/.test(ib))r.push({priority:'low',title:'Assign targeted awareness training',why:'A user clicked a phishing link.',action:'Auto-enrol them in a short "spot the spoof" module.'});
+  r.push({priority:'low',title:'Keep Defender P1 impersonation protection tuned',why:'On Plan 1 this is the main lever against brand look-alikes.',action:'List bmo.com + the big Canadian banks as protected domains, action = Quarantine.'});
+  return r.sort((a,b)=>rank[a.priority]-rank[b.priority]).slice(0,5);
+}
+function renderRecs(recs){
+  const ul=$('#recs');if(!ul)return;ul.innerHTML='';
+  const col={high:'var(--coral)',medium:'var(--amber)',low:'var(--mint)'};
+  recs.forEach(r=>{const c=col[r.priority]||'var(--mint)';const li=document.createElement('li');li.className='recitem';
+    li.innerHTML=`<span class="recdot" style="background:${c}"></span><div class="recbody"><div class="rectitle">${r.title}<span class="recpri" style="color:${c}">${r.priority}</span></div><div class="recwhy">${r.why}</div><div class="recact"><b>Do:</b> ${r.action}</div></div>`;
+    ul.appendChild(li);});
+}
 function hhmm(iso){try{return new Date(iso).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
 function renderLiveAlerts(alerts){
   const term=$('#term');if(!term)return;term.innerHTML='';
@@ -495,6 +533,7 @@ function renderLiveAlerts(alerts){
   });
 }
 function applyLive(d){
+  if(Array.isArray(d.recommendations))renderRecs(d.recommendations);
   const badge=$('#srcBadge');
   if(d && d.live){
     badge.textContent='Live';badge.classList.add('live');badge.title='Live via Microsoft Graph — synced '+hhmm(d.generatedAt);
@@ -512,6 +551,7 @@ function applyLive(d){
     badge.textContent='Demo';badge.title='Illustrative sample data — connect Microsoft Graph to go live'+(d&&d.reason?(' ('+d.reason+')'):'');
   }
 }
+renderRecs(buildRecsClient(DEMO_ALERTS, incidents));  // show recommendations immediately; live fetch overrides
 fetch('/.netlify/functions/security-summary',{cache:'no-store'})
   .then(r=>r.ok?r.json():null).then(d=>{if(d)applyLive(d);}).catch(()=>{/* stays in demo mode */});
 </script>
