@@ -27,6 +27,7 @@
   .logo .mk i:nth-child(1){background:#e6e8ee} .logo .mk i:nth-child(4){background:var(--coral)}
   .logo b{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:22px;font-weight:600;letter-spacing:.3px}
   .demobadge{margin-left:2px;font-size:10px;font-weight:800;letter-spacing:1px;color:var(--amber);background:rgba(240,180,41,.12);border:1px solid rgba(240,180,41,.35);padding:3px 8px;border-radius:6px;text-transform:uppercase;align-self:center}
+  .demobadge.live{color:var(--mint);background:rgba(45,212,167,.12);border-color:rgba(45,212,167,.4)}
   .pillnav{margin:0 auto;display:flex;gap:2px;background:rgba(255,255,255,.05);border:1px solid var(--border);padding:5px;border-radius:40px}
   .pillnav button{padding:8px 18px;border-radius:30px;color:var(--ink2);border:0;background:none;cursor:pointer;font-size:13.5px;font-weight:600;font-family:inherit;transition:.15s}
   .pillnav button:hover{color:#fff}
@@ -124,7 +125,7 @@
 <body>
 
 <nav class="topnav">
-  <div class="logo"><div class="mk"><i></i><i></i><i></i><i></i></div><b>RIMs&nbsp;Transport</b><span class="demobadge" title="Illustrative sample data — not a live tenant">Demo</span></div>
+  <div class="logo"><div class="mk"><i></i><i></i><i></i><i></i></div><b>RIMs&nbsp;Transport</b><span class="demobadge" id="srcBadge" title="Illustrative sample data — not a live tenant">Demo</span></div>
   <div class="pillnav" id="nav">
     <button class="on" data-view="overview">Overview</button>
     <button data-view="security">Security</button>
@@ -479,6 +480,40 @@ $('#runSim').addEventListener('click',()=>{
 /* init */
 animateCounters($('#view-overview'));
 updateIncKpi();
+
+/* ---------- LIVE DATA: pull from the serverless agent, fall back to demo ---------- */
+const sevMap={high:{sev:'Serious',cls:'b-crit'},medium:{sev:'Elevated',cls:'b-warn'},low:{sev:'Low',cls:'b-ok'},informational:{sev:'Low',cls:'b-ok'}};
+function hhmm(iso){try{return new Date(iso).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+function renderLiveAlerts(alerts){
+  const term=$('#term');if(!term)return;term.innerHTML='';
+  if(!alerts.length){const d=document.createElement('div');d.className='ln';d.innerHTML='<span class="ok">no active alerts from Microsoft Graph</span>';term.appendChild(d);return;}
+  alerts.slice(0,12).forEach(a=>{
+    const cls=a.severity==='high'?'bad':(a.severity==='medium'?'w':'tx');
+    const d=document.createElement('div');d.className='ln';
+    d.innerHTML=`<span class="ts">${a.createdDateTime?hhmm(a.createdDateTime):'--:--'}</span> <span class="${cls}">${(a.severity||'').toUpperCase()}</span> <span class="tx">${(a.title||'alert').replace(/</g,'&lt;')}</span>`;
+    term.appendChild(d);
+  });
+}
+function applyLive(d){
+  const badge=$('#srcBadge');
+  if(d && d.live){
+    badge.textContent='Live';badge.classList.add('live');badge.title='Live via Microsoft Graph — synced '+hhmm(d.generatedAt);
+    const meta=document.querySelector('.hero .meta');
+    if(meta && !meta.dataset.live){meta.dataset.live='1';meta.innerHTML+=' · <span style="color:var(--mint)">Live via Microsoft Graph</span> (alerts &amp; incidents)';}
+    if(Array.isArray(d.incidents)){
+      incidents=d.incidents.map((i,n)=>{const m=sevMap[(i.severity||'low').toLowerCase()]||sevMap.low;
+        return {id:i.id||('live'+n),name:i.name||'Incident',type:i.type||'Incident',
+          when:i.createdDateTime?new Date(i.createdDateTime).toLocaleString('en-CA'):'—',
+          sev:m.sev,cls:m.cls,detail:'Live incident from Microsoft Graph · status: '+(i.status||'active')+'. Open the Microsoft Defender portal for full investigation detail.'};});
+      renderIncidents();updateIncKpi();
+    }
+    if(Array.isArray(d.alerts))renderLiveAlerts(d.alerts);
+  } else {
+    badge.textContent='Demo';badge.title='Illustrative sample data — connect Microsoft Graph to go live'+(d&&d.reason?(' ('+d.reason+')'):'');
+  }
+}
+fetch('/.netlify/functions/security-summary',{cache:'no-store'})
+  .then(r=>r.ok?r.json():null).then(d=>{if(d)applyLive(d);}).catch(()=>{/* stays in demo mode */});
 </script>
 </body>
 </html>

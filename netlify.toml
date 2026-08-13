@@ -1,2 +1,10 @@
 [build]
   publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# The dashboard front-end calls these serverless functions (same origin, no CORS).
+# Set MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET in Netlify > Site settings >
+# Environment variables to switch from demo data to live Microsoft Graph data.
